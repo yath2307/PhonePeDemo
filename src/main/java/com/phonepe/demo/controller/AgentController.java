@@ -7,7 +7,7 @@ import com.phonepe.demo.service.CustomerServiceAgentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-@RestController("/agents")
+@RestController()
 @Slf4j
 public class AgentController {
 
@@ -17,7 +17,7 @@ public class AgentController {
         this.customerServiceAgentService = customerServiceAgentService;
     }
 
-    @PostMapping()
+    @PostMapping("/agents")
     String createCustomerServiceAgent(@RequestBody CreateCustomerServiceAgentRequest request) throws JsonProcessingException {
         log.info(new ObjectMapper().writeValueAsString(request));
         return customerServiceAgentService.createAgent(request);
