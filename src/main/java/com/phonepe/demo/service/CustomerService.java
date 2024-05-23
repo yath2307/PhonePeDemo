@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phonepe.demo.entity.mongo.Customer;
 import com.phonepe.demo.mapper.CustomerMapper;
 import com.phonepe.demo.model.dto.ErrorDTO;
+import com.phonepe.demo.model.request.CreateCustomerRequest;
 import com.phonepe.demo.model.response.GetCustomerResponse;
 import com.phonepe.demo.repository.mongo.CustomerRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +29,9 @@ public class CustomerService {
         this.customerMapper = customerMapper;
     }
 
-    public String saveCustomer(Customer customer) throws JsonProcessingException {
-        log.info(new ObjectMapper().writeValueAsString(customer));
-        customer = customerRepository.save(customer);
+    public String saveCustomer(CreateCustomerRequest createCustomerRequest) throws JsonProcessingException {
+        log.info(new ObjectMapper().writeValueAsString(createCustomerRequest));
+        Customer customer = customerRepository.save(customerMapper.map(createCustomerRequest.getCustomer()));
         return customer.getId();
     }
 

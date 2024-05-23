@@ -3,6 +3,7 @@ package com.phonepe.demo.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phonepe.demo.entity.mongo.Issue;
+import com.phonepe.demo.model.request.CreateIssueRequest;
 import com.phonepe.demo.model.request.UpdateIssueRequest;
 import com.phonepe.demo.model.response.GetIssueResponse;
 import com.phonepe.demo.service.IssueService;
@@ -18,13 +19,13 @@ public class IssueController {
     private IssueService issueService;
 
     @PostMapping("/issues")
-    String createIssue(@RequestBody Issue issue) throws JsonProcessingException {
-        log.info(new ObjectMapper().writeValueAsString(issue));
-        return issueService.createIssue(issue);
+    String createIssue(@RequestBody CreateIssueRequest createIssueRequest) throws JsonProcessingException {
+        log.info(new ObjectMapper().writeValueAsString(createIssueRequest));
+        return issueService.createIssue(createIssueRequest);
     }
 
-    @GetMapping("/issues/{issueUuid}")
-    GetIssueResponse getCustomerResponse(@RequestParam(value = "issueUuid") String issueUuid, @RequestParam(value = "agentEmail") String agentemail) throws JsonProcessingException {
+    @GetMapping("/issues")
+    GetIssueResponse getIssue(@RequestParam(value = "issueUuid") String issueUuid, @RequestParam(value = "agentEmail", required = false) String agentemail) throws JsonProcessingException {
         return issueService.getIssue(issueUuid, agentemail);
     }
 
@@ -35,7 +36,7 @@ public class IssueController {
     }
 
     @PostMapping("/issues/{issueUuid}/assign")
-    GetIssueResponse updateIssue(@PathVariable(value = "issueUuid") String issueUuid) throws JsonProcessingException {
+    GetIssueResponse assignIssue(@PathVariable(value = "issueUuid") String issueUuid) throws JsonProcessingException {
         return issueService.assignIssue(issueUuid);
     }
 }

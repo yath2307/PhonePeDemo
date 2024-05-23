@@ -10,4 +10,6 @@ public interface CustomerMapper {
 
     @Mapping(source = "id", target = "uuid")
     CustomerDTO map(Customer customer);
+    @Mapping(source = "uuid", target = "id")
+    Customer map(CustomerDTO customer);
 }

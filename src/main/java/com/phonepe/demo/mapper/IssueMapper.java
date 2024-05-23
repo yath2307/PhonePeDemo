@@ -10,4 +10,7 @@ public interface IssueMapper {
 
     @Mapping(source = "id", target = "uuid")
     IssueDTO map(Issue issue);
+
+    @Mapping(source = "uuid", target = "id")
+    Issue map(IssueDTO issueDTO);
 }

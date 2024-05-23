@@ -8,11 +8,11 @@ import com.phonepe.demo.mapper.IssueMapper;
 import com.phonepe.demo.model.IssueStatus;
 import com.phonepe.demo.model.IssueType;
 import com.phonepe.demo.model.dto.ErrorDTO;
+import com.phonepe.demo.model.request.CreateIssueRequest;
 import com.phonepe.demo.model.response.GetIssueResponse;
 import com.phonepe.demo.repository.mongo.CustomerServiceAgentRepository;
 import com.phonepe.demo.repository.mongo.IssueRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.weaver.loadtime.Agent;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -32,9 +32,9 @@ public class IssueService {
         this.issueMapper = issueMapper;
     }
 
-    public String createIssue(Issue issue) throws JsonProcessingException {
-        log.info(new ObjectMapper().writeValueAsString(issue));
-        issue = issueRepository.save(issue);
+    public String createIssue(CreateIssueRequest createIssueRequest) throws JsonProcessingException {
+        log.info(new ObjectMapper().writeValueAsString(createIssueRequest));
+        Issue issue = issueRepository.save(issueMapper.map(createIssueRequest.getIssueDTO()));
         return issue.getId();
     }
 
@@ -99,18 +99,15 @@ public class IssueService {
             return;
         } else {
             List<IssueType> issueTypeList = agent.getIssueTypeList();
-            List<Issue> issues = issueRepository.findAllByIssueTypeIn(issueTypeList);
+            List<Issue> issues = issueRepository.findAllByIssueTypeInAndIssueStatus(issueTypeList, IssueStatus.UNASSIGNED.name());
             if(issues == null || issues.isEmpty()) {
+                log.info("No issues found");
                 agent.setIssueAssigned(false);
                 customerServiceAgentRepository.save(agent);
                 return;
             } else {
-                Issue issue = issues.getFirst();
-                issue.setCustomerServiceAgentId(agentId);
-                issue.setCustomerServiceAgentName(agent.getName());
-                agent.setIssueAssigned(true);
-                customerServiceAgentRepository.save(agent);
-                issueRepository.save(issue);
+                Issue issue = issues.get(0);
+                assignIssueToAgent(agent, issue);
             }
         }
     }
@@ -125,17 +122,22 @@ public class IssueService {
         } else {
             List<CustomerServiceAgent> customerServiceAgents = customerServiceAgentRepository.findAll();
             for(CustomerServiceAgent customerServiceAgent : customerServiceAgents) {
-                if(!customerServiceAgent.getIssueAssigned() && customerServiceAgent.getIssueTypeList().contains(issue.getType())) {
-                    customerServiceAgent.setIssueAssigned(true);
-                    issue.setCustomerServiceAgentId(customerServiceAgent.getId());
-                    issue.setCustomerServiceAgentName(customerServiceAgent.getName());
-                    customerServiceAgentRepository.save(customerServiceAgent);
-                    issue = issueRepository.save(issue);
+                if(Boolean.FALSE.equals(customerServiceAgent.getIssueAssigned()) && customerServiceAgent.getIssueTypeList().contains(issue.getType())) {
+                    assignIssueToAgent(customerServiceAgent, issue);
                     break;
                 }
             }
             response.setIssue(issueMapper.map(issue));
             return response;
         }
+    }
+
+    private void assignIssueToAgent(CustomerServiceAgent customerServiceAgent, Issue issue) {
+        issue.setCustomerServiceAgentId(customerServiceAgent.getId());
+        issue.setCustomerServiceAgentName(customerServiceAgent.getName());
+        issue.setStatus(IssueStatus.IN_PROGRESS);
+        customerServiceAgent.setIssueAssigned(true);
+        customerServiceAgentRepository.save(customerServiceAgent);
+        issueRepository.save(issue);
     }
 }

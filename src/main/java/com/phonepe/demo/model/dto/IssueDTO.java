@@ -11,6 +11,7 @@ public class IssueDTO implements Serializable {
     String uuid;
     String title;
     String description;
+    String resolution;
     IssueStatus status;
     IssueType type;
     String customerId;
